@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+package ail.leak_service;
+
+option optimize_for = SPEED;
+option go_package = "main";
