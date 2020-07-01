@@ -5,11 +5,16 @@ import (
 	"errors"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+const _LeakCollectionName = "leaks"
+const _EmailCollectionName = "emails"
+const _RelationCollectionName = "rels"
 
 type LeakEntry struct {
 	ID   primitive.ObjectID `bson:"_id"`
@@ -50,7 +55,38 @@ func (db *MongoDBConn) Connect(uri string, database string) error {
 }
 
 func (db *MongoDBConn) GetAllLeaks() ([]*LeakEntry, error) {
-	return nil, nil
+	if db == nil {
+		return nil, errors.New("I am not even alive")
+	}
+
+	var leaks []*LeakEntry
+
+	ctx := context.TODO()
+	cur, err := db.conn.Collection(_LeakCollectionName).Find(ctx, bson.D{{}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	for cur.Next(ctx) {
+		var l LeakEntry
+		err := cur.Decode(&l)
+
+		if err != nil {
+			return nil, err
+		}
+
+		leaks = append(leaks, &l)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	// once exhausted, close the cursor
+	cur.Close(ctx)
+
+	return leaks, nil
 }
 
 func (db *MongoDBConn) GetEmailsByLeakID(leakId string) ([]*EmailEntry, error) {
