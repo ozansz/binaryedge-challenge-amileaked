@@ -4,3 +4,23 @@ package ail.leak;
 
 option optimize_for = SPEED;
 option go_package = "main";
+
+message Leak {                              /// * Leak message structure
+    message Domain {                        /// * Domain message structure
+        message Email {                     /// * Email message structure
+            int64 id = 1;                   // Email ID      
+            string email = 2;               // Email string itself
+            int64 first_occurance_ts = 3;   // Timestamp of the date the email added to DB
+            int64 last_occurance_ts = 4;    // Timestamp of the last date the email was related to a Leak in DB
+        }
+
+        int64 id = 1;                       // Domain ID
+        string name = 2;                    // Domain name itself
+        repeated Email emails = 3;          // Emails related to this domain in DB
+    }
+
+    int64 id = 1;                           // Leak ID
+    string name = 2;                        // Leak codename
+    repeated Domain domains = 3;            // Domains related to this leak in DB
+    int64 email_count = 4;                  // Total number of emails related to this leak in DB
+}

@@ -4,3 +4,38 @@ package ail.leak_service;
 
 option optimize_for = SPEED;
 option go_package = "main";
+
+import "leak.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+// Generated according to https://cloud.google.com/apis/design/standard_methods
+service LeakService {
+  rpc ListLeaks(google.protobuf.Empty) returns (stream ail.leak.Leak) {
+    option (google.api.http) = {
+      get: "/v1-beta/leaks"
+    };
+  }
+
+  rpc GetLeaksByEmail(GetLeaksByEmailRequest) returns (stream ail.leak.Leak) {
+    option (google.api.http) = {
+      post: "/v1-beta/leaks-by-email"
+      body: "*"
+    };
+  }
+
+  rpc GetLeaksByDomain(GetLeaksByDomainRequest) returns (stream ail.leak.Leak) {
+    option (google.api.http) = {
+      post: "/v1-beta/leaks-by-domain"
+      body: "*"
+    };
+  }
+}
+
+message GetLeaksByEmailRequest {
+    string email = 1;
+}
+
+message GetLeaksByDomainRequest {
+    string domain = 1;
+}
