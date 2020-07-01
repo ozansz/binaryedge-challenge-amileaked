@@ -9,8 +9,9 @@ import (
 )
 
 type LeakServiceServerHandler struct {
-	DBConnUri string
-	db        *MongoDBConn
+	DBConnURI    string
+	DatabaseName string
+	db           *MongoDBConn
 }
 
 func (s *LeakServiceServerHandler) DBConnect() error {
@@ -20,7 +21,7 @@ func (s *LeakServiceServerHandler) DBConnect() error {
 
 	s.db = &MongoDBConn{}
 
-	if err := s.db.Connect(s.DBConnUri); err != nil {
+	if err := s.db.Connect(s.DBConnURI, s.DatabaseName); err != nil {
 		return err
 	}
 
