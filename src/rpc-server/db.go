@@ -59,6 +59,10 @@ func (db *MongoDBConn) GetAllLeaks() ([]*LeakEntry, error) {
 		return nil, errors.New("I am not even alive")
 	}
 
+	if db.conn == nil {
+		return nil, errors.New("My connection is not set")
+	}
+
 	var leaks []*LeakEntry
 
 	ctx := context.TODO()
@@ -90,17 +94,224 @@ func (db *MongoDBConn) GetAllLeaks() ([]*LeakEntry, error) {
 }
 
 func (db *MongoDBConn) GetEmailsByLeakID(leakId string) ([]*EmailEntry, error) {
-	return nil, nil
+	if db == nil {
+		return nil, errors.New("I am not even alive")
+	}
+
+	if db.conn == nil {
+		return nil, errors.New("My connection is not set")
+	}
+
+	var relations []*LeakEmailRelationEntry
+
+	ctx := context.TODO()
+	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "leak_id", Value: leakId}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	for cur.Next(ctx) {
+		var r LeakEmailRelationEntry
+		err := cur.Decode(&r)
+
+		if err != nil {
+			return nil, err
+		}
+
+		relations = append(relations, &r)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	cur.Close(ctx)
+
+	var emails []*EmailEntry
+
+	for _, rel := range relations {
+		var emailEntry EmailEntry
+
+		err = db.conn.Collection(_EmailCollectionName).FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: rel.EmailID}}).Decode(&emailEntry)
+
+		if err != nil {
+			return nil, err
+		}
+
+		emails = append(emails, &emailEntry)
+	}
+
+	return emails, nil
 }
 
-func (db *MongoDBConn) GetLeaksByEmail(email string) ([]*LeakEntry, error) {
-	return nil, nil
+func (db *MongoDBConn) GetLeaksByEmailID(emailId string) ([]*LeakEntry, error) {
+	if db == nil {
+		return nil, errors.New("I am not even alive")
+	}
+
+	if db.conn == nil {
+		return nil, errors.New("My connection is not set")
+	}
+
+	var relations []*LeakEmailRelationEntry
+
+	ctx := context.TODO()
+	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "email_id", Value: emailId}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	for cur.Next(ctx) {
+		var r LeakEmailRelationEntry
+		err := cur.Decode(&r)
+
+		if err != nil {
+			return nil, err
+		}
+
+		relations = append(relations, &r)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	cur.Close(ctx)
+
+	var leaks []*LeakEntry
+
+	for _, rel := range relations {
+		var leakEntry LeakEntry
+
+		err = db.conn.Collection(_LeakCollectionName).FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: rel.LeakID}}).Decode(&leakEntry)
+
+		if err != nil {
+			return nil, err
+		}
+
+		leaks = append(leaks, &leakEntry)
+	}
+
+	return leaks, nil
 }
 
 func (db *MongoDBConn) GetLeaksByDomain(domain string) ([]*LeakEntry, error) {
-	return nil, nil
+	if db == nil {
+		return nil, errors.New("I am not even alive")
+	}
+
+	if db.conn == nil {
+		return nil, errors.New("My connection is not set")
+	}
+
+	var relations []*LeakEmailRelationEntry
+
+	ctx := context.TODO()
+	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "email_domain", Value: domain}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	for cur.Next(ctx) {
+		var r LeakEmailRelationEntry
+		err := cur.Decode(&r)
+
+		if err != nil {
+			return nil, err
+		}
+
+		relations = append(relations, &r)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	cur.Close(ctx)
+
+	var leaks []*LeakEntry
+
+	for _, rel := range relations {
+		var leakEntry LeakEntry
+
+		err = db.conn.Collection(_LeakCollectionName).FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: rel.LeakID}}).Decode(&leakEntry)
+
+		if err != nil {
+			return nil, err
+		}
+
+		leaks = append(leaks, &leakEntry)
+	}
+
+	return leaks, nil
 }
 
 func (db *MongoDBConn) GetEmailsByDomainAndLeakID(domain string, leakId string) ([]*EmailEntry, error) {
-	return nil, nil
+	if db == nil {
+		return nil, errors.New("I am not even alive")
+	}
+
+	if db.conn == nil {
+		return nil, errors.New("My connection is not set")
+	}
+
+	var relations []*LeakEmailRelationEntry
+
+	ctx := context.TODO()
+	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "$and", Value: bson.A{
+		bson.D{primitive.E{Key: "email_domain", Value: domain}},
+		bson.D{primitive.E{Key: "leak_id", Value: leakId}},
+	}}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	for cur.Next(ctx) {
+		var r LeakEmailRelationEntry
+		err := cur.Decode(&r)
+
+		if err != nil {
+			return nil, err
+		}
+
+		relations = append(relations, &r)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	cur.Close(ctx)
+
+	var emails []*EmailEntry
+
+	for _, rel := range relations {
+		var emailEntry EmailEntry
+
+		err = db.conn.Collection(_EmailCollectionName).FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: rel.EmailID}}).Decode(&emailEntry)
+
+		if err != nil {
+			return nil, err
+		}
+
+		emails = append(emails, &emailEntry)
+	}
+
+	return emails, nil
+}
+
+func (db *MongoDBConn) GetEmailIDFromEmail(email string) (string, error) {
+	var emailEnt EmailEntry
+
+	err := db.conn.Collection(_EmailCollectionName).FindOne(context.TODO(), bson.D{primitive.E{Key: "email", Value: email}}).Decode(&emailEnt)
+
+	if err != nil {
+		return "", err
+	}
+
+	return emailEnt.ID.Hex(), nil
 }

@@ -91,7 +91,13 @@ func (s *LeakServiceServerHandler) GetLeaksByEmail(req *GetLeaksByEmailRequest, 
 		return status.Errorf(codes.Aborted, "Uninitialized database connection")
 	}
 
-	leaks, err := s.db.GetLeaksByEmail(req.GetEmail())
+	emailID, err := s.db.GetEmailIDFromEmail(req.GetEmail())
+
+	if err != nil {
+		return status.Errorf(codes.Internal, "Unable to get Email object ID")
+	}
+
+	leaks, err := s.db.GetLeaksByEmailID(emailID)
 
 	if err != nil {
 		return status.Errorf(codes.Internal, "Unable to get Leak objects")
