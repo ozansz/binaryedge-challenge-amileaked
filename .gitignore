@@ -1,0 +1,2 @@
+src/rpc-server/*.pb.go
+src/rpc-server/*.pb.gw.go
