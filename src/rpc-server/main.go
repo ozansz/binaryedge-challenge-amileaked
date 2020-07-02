@@ -15,12 +15,14 @@ import (
 )
 
 func runGRPCServer(host string, port int64) {
+	// Open socket to listen on
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Create gRPC server with inceptor middleware
 	srv := grpc.NewServer(
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
 			// grpc_zap.StreamServerInterceptor(zapLogger),
@@ -32,22 +34,26 @@ func runGRPCServer(host string, port int64) {
 		)),
 	)
 
+	// Construct the service server
 	handler := &LeakServiceServerHandler{
 		DBConnURI:    "mongodb+srv://dbUser:uJKmMse-U3Tgk5K@cluster0-m6gsh.mongodb.net/?ssl=true",
 		DatabaseName: "ail",
 	}
 
+	// Make the DB connection
 	err = handler.DBConnect()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Register server handler to the server created
 	RegisterLeakServiceServer(srv, handler)
-
 	reflection.Register(srv)
 
 	fmt.Printf("Started GRPC Server on %s\n", fmt.Sprintf("%s:%d", host, port))
+
+	// Serve on the socket opened before
 	err = srv.Serve(listener)
 
 	if err != nil {
@@ -59,10 +65,12 @@ func main() {
 	sigChannel := make(chan os.Signal, 1)
 	signal.Notify(sigChannel, syscall.SIGINT, syscall.SIGTERM)
 
+	// Wait for keyboard interrupt to exit the program
 	go func() {
 		<-sigChannel
 		os.Exit(0)
 	}()
 
+	// Let the fun begin!
 	runGRPCServer("localhost", 50051)
 }
