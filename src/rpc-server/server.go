@@ -1,6 +1,7 @@
 package main
 
 import (
+	context "context"
 	"errors"
 
 	empty "github.com/golang/protobuf/ptypes/empty"
@@ -82,7 +83,7 @@ func (s *LeakServiceServerHandler) ListLeaks(req *empty.Empty, srv LeakService_L
 	return nil
 }
 
-func (s *LeakServiceServerHandler) GetLeaksByEmail(req *GetLeaksByEmailRequest, srv LeakService_GetLeaksByEmailServer) error {
+func (s *LeakServiceServerHandler) GetLeaksByEmailStreamed(req *GetLeaksByEmailRequest, srv LeakService_GetLeaksByEmailStreamedServer) error {
 	if s == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized server stub")
 	}
@@ -119,7 +120,7 @@ func (s *LeakServiceServerHandler) GetLeaksByEmail(req *GetLeaksByEmailRequest, 
 	return nil
 }
 
-func (s *LeakServiceServerHandler) GetLeaksByDomain(req *GetLeaksByDomainRequest, srv LeakService_GetLeaksByDomainServer) error {
+func (s *LeakServiceServerHandler) GetLeaksByDomainStreamed(req *GetLeaksByDomainRequest, srv LeakService_GetLeaksByDomainStreamedServer) error {
 	if s == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized server stub")
 	}
@@ -171,4 +172,99 @@ func (s *LeakServiceServerHandler) GetLeaksByDomain(req *GetLeaksByDomainRequest
 	}
 
 	return nil
+}
+
+func (s *LeakServiceServerHandler) GetLeaksByEmail(ctx context.Context, req *GetLeaksByEmailRequest) (*GetLeaksByEmailResponse, error) {
+	if s == nil {
+		return nil, status.Errorf(codes.Aborted, "Uninitialized server stub")
+	}
+
+	if s.db == nil {
+		return nil, status.Errorf(codes.Aborted, "Uninitialized database connection")
+	}
+
+	emailID, err := s.db.GetEmailIDFromEmail(req.GetEmail())
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to get Email object ID")
+	}
+
+	leaks, err := s.db.GetLeaksByEmailID(emailID)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to get Leak objects")
+	}
+
+	leaksRet := make([]*Leak, 0)
+
+	for _, leak := range leaks {
+		leakPkg := &Leak{
+			Id:         leak.ID.Hex(),
+			Name:       leak.Name,
+			Emails:     make([]*Leak_Email, 0),
+			EmailCount: 0,
+		}
+
+		leaksRet = append(leaksRet, leakPkg)
+	}
+
+	return &GetLeaksByEmailResponse{
+		Leaks: leaksRet,
+	}, nil
+}
+
+func (s *LeakServiceServerHandler) GetLeaksByDomain(ctx context.Context, req *GetLeaksByDomainRequest) (*GetLeaksByDomainResponse, error) {
+	if s == nil {
+		return nil, status.Errorf(codes.Aborted, "Uninitialized server stub")
+	}
+
+	if s.db == nil {
+		return nil, status.Errorf(codes.Aborted, "Uninitialized database connection")
+	}
+
+	leaks, err := s.db.GetLeaksByDomain(req.GetDomain())
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to get Leak objects")
+	}
+
+	leaksRet := make([]*Leak, 0)
+
+	for _, leak := range leaks {
+		leakPkg := &Leak{
+			Id:         leak.ID.Hex(),
+			Name:       leak.Name,
+			Emails:     nil,
+			EmailCount: 0,
+		}
+
+		emailsArr := make([]*Leak_Email, 0)
+		var emailCount int64 = 0
+
+		emails, err := s.db.GetEmailsByDomainAndLeakID(req.GetDomain(), leakPkg.GetId())
+
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Unable to get Email objects")
+		}
+
+		for _, email := range emails {
+			emailCount++
+
+			emailsArr = append(emailsArr, &Leak_Email{
+				Email:            email.Email,
+				Domain:           email.Domain,
+				FirstOccuranceTs: email.CreatedAt.Unix(),
+				LastOccuranceTs:  email.UpdatedAt.Unix(),
+			})
+		}
+
+		leakPkg.Emails = emailsArr
+		leakPkg.EmailCount = emailCount
+
+		leaksRet = append(leaksRet, leakPkg)
+	}
+
+	return &GetLeaksByDomainResponse{
+		Leaks: leaksRet,
+	}, nil
 }
