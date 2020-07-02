@@ -8,4 +8,4 @@
 * ~~add performance tracking~~
 * document api design in `docs/APIDesign.md`
 * document database design in `docs/DatabaseDesign.md`
-* write general project information in `README.md`
+* ~~write general project information in `README.md`~~
