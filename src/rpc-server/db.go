@@ -16,28 +16,34 @@ const _LeakCollectionName = "leaks"
 const _EmailCollectionName = "emails"
 const _RelationCollectionName = "rels"
 
+// LeakEntry is used for temporary data holding for 'leaks' collection per database communications
 type LeakEntry struct {
-	ID   primitive.ObjectID `bson:"_id"`
-	Name string             `bson:"name"`
+	ID   primitive.ObjectID `bson:"_id"`  // Object ID
+	Name string             `bson:"name"` // Leak name
 }
+
+// EmailEntry is used for temporary data holding for 'emails' collection per database communications
 type EmailEntry struct {
-	ID        primitive.ObjectID `bson:"_id"`
-	Domain    string             `bson:"domain"`
-	CreatedAt time.Time          `bson:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at"`
-	Email     string             `bson:"email"`
+	ID        primitive.ObjectID `bson:"_id"`        // Object ID
+	Domain    string             `bson:"domain"`     // Email domain
+	CreatedAt time.Time          `bson:"created_at"` // Email creation date
+	UpdatedAt time.Time          `bson:"updated_at"` // Last operation including this email date
+	Email     string             `bson:"email"`      // Email itself
 }
 
+// LeakEmailRelationEntry is used for temporary data holding for 'rels' collection per database communications
 type LeakEmailRelationEntry struct {
-	EmailID     primitive.ObjectID `bson:"email_id"`
-	LeakID      primitive.ObjectID `bson:"leak_id"`
-	EmailDomain string             `bson:"email_domain"`
+	EmailID     primitive.ObjectID `bson:"email_id"`     // Email Object ID
+	LeakID      primitive.ObjectID `bson:"leak_id"`      // Leak Object ID
+	EmailDomain string             `bson:"email_domain"` // Email domain
 }
 
+// MongoDBConn - Custom DB connector class
 type MongoDBConn struct {
 	conn *mongo.Database
 }
 
+// Connect performs DB connection for the client object initialization
 func (db *MongoDBConn) Connect(uri string, database string) error {
 	if db == nil {
 		return errors.New("I am not even alive")
@@ -54,6 +60,7 @@ func (db *MongoDBConn) Connect(uri string, database string) error {
 	return nil
 }
 
+// GetAllLeaks returns an array of all leak documents in the DB
 func (db *MongoDBConn) GetAllLeaks() ([]*LeakEntry, error) {
 	if db == nil {
 		return nil, errors.New("I am not even alive")
@@ -93,6 +100,8 @@ func (db *MongoDBConn) GetAllLeaks() ([]*LeakEntry, error) {
 	return leaks, nil
 }
 
+// GetEmailsByLeakID returns an array of email documents in the DB
+// which have a relation with the Leak specified
 func (db *MongoDBConn) GetEmailsByLeakID(leakId string) ([]*EmailEntry, error) {
 	if db == nil {
 		return nil, errors.New("I am not even alive")
@@ -145,6 +154,8 @@ func (db *MongoDBConn) GetEmailsByLeakID(leakId string) ([]*EmailEntry, error) {
 	return emails, nil
 }
 
+// GetLeaksByEmailID returns an array of leak documents in the DB
+// which have a relation with the Email specified
 func (db *MongoDBConn) GetLeaksByEmailID(emailId string) ([]*LeakEntry, error) {
 	if db == nil {
 		return nil, errors.New("I am not even alive")
@@ -197,6 +208,8 @@ func (db *MongoDBConn) GetLeaksByEmailID(emailId string) ([]*LeakEntry, error) {
 	return leaks, nil
 }
 
+// GetLeaksByDomain returns an array of leak documents in the DB
+// which have a relation with the email domain specified
 func (db *MongoDBConn) GetLeaksByDomain(domain string) ([]*LeakEntry, error) {
 	if db == nil {
 		return nil, errors.New("I am not even alive")
@@ -260,6 +273,8 @@ func (db *MongoDBConn) GetLeaksByDomain(domain string) ([]*LeakEntry, error) {
 	return leaks, nil
 }
 
+// GetEmailsByDomainAndLeakID returns an array of email documents in the DB
+// which have a relation with both the email domain and the Leak specified
 func (db *MongoDBConn) GetEmailsByDomainAndLeakID(domain string, leakId string) ([]*EmailEntry, error) {
 	if db == nil {
 		return nil, errors.New("I am not even alive")
@@ -315,6 +330,7 @@ func (db *MongoDBConn) GetEmailsByDomainAndLeakID(domain string, leakId string) 
 	return emails, nil
 }
 
+// GetEmailIDFromEmail returns the Object ID in hex string format of the email specified
 func (db *MongoDBConn) GetEmailIDFromEmail(email string) (string, error) {
 	var emailEnt EmailEntry
 
