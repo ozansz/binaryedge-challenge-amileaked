@@ -36,7 +36,7 @@ func runGRPCServer(host string, port int64) {
 
 	// Construct the service server
 	handler := &LeakServiceServerHandler{
-		DBConnURI:    "mongodb+srv://dbUser:uJKmMse-U3Tgk5K@cluster0-m6gsh.mongodb.net/?ssl=true",
+		DBConnURI:    "mongodb+srv://dbUser:passwd@localhost/?ssl=true",
 		DatabaseName: "ail",
 	}
 
