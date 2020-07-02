@@ -243,7 +243,18 @@ func (db *MongoDBConn) GetLeaksByDomain(domain string) ([]*LeakEntry, error) {
 			return nil, err
 		}
 
-		leaks = append(leaks, &leakEntry)
+		_leakExists := false
+
+		for _, leakPtr := range leaks {
+			if leakPtr.ID.Hex() == leakEntry.ID.Hex() {
+				_leakExists = true
+				break
+			}
+		}
+
+		if !_leakExists {
+			leaks = append(leaks, &leakEntry)
+		}
 	}
 
 	return leaks, nil
