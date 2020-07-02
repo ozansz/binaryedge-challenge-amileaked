@@ -1,2 +1,4 @@
 src/rpc-server/*.pb.go
 src/rest-server/*.pb.gw.go
+src/rpc-server/rpc-server
+src/rest-server/rest-server
