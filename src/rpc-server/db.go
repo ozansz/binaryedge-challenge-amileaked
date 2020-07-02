@@ -3,7 +3,6 @@ package main
 import (
 	context "context"
 	"errors"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,8 +25,8 @@ type LeakEntry struct {
 type EmailEntry struct {
 	ID        primitive.ObjectID `bson:"_id"`        // Object ID
 	Domain    string             `bson:"domain"`     // Email domain
-	CreatedAt time.Time          `bson:"created_at"` // Email creation date
-	UpdatedAt time.Time          `bson:"updated_at"` // Last operation including this email date
+	CreatedAt int64              `bson:"created_at"` // Email creation date
+	UpdatedAt int64              `bson:"updated_at"` // Last operation including this email date
 	Email     string             `bson:"email"`      // Email itself
 }
 
@@ -113,8 +112,14 @@ func (db *MongoDBConn) GetEmailsByLeakID(leakId string) ([]*EmailEntry, error) {
 
 	var relations []*LeakEmailRelationEntry
 
+	leakOID, err := primitive.ObjectIDFromHex(leakId)
+
+	if err != nil {
+		return nil, err
+	}
+
 	ctx := context.TODO()
-	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "leak_id", Value: leakId}})
+	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "leak_id", Value: leakOID}})
 
 	if err != nil {
 		return nil, err
@@ -168,7 +173,14 @@ func (db *MongoDBConn) GetLeaksByEmailID(emailId string) ([]*LeakEntry, error) {
 	var relations []*LeakEmailRelationEntry
 
 	ctx := context.TODO()
-	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "email_id", Value: emailId}})
+
+	emailOID, err := primitive.ObjectIDFromHex(emailId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "email_id", Value: emailOID}})
 
 	if err != nil {
 		return nil, err
@@ -286,11 +298,14 @@ func (db *MongoDBConn) GetEmailsByDomainAndLeakID(domain string, leakId string) 
 
 	var relations []*LeakEmailRelationEntry
 
+	leakOID, err := primitive.ObjectIDFromHex(leakId)
+
+	if err != nil {
+		return nil, err
+	}
+
 	ctx := context.TODO()
-	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "$and", Value: bson.A{
-		bson.D{primitive.E{Key: "email_domain", Value: domain}},
-		bson.D{primitive.E{Key: "leak_id", Value: leakId}},
-	}}})
+	cur, err := db.conn.Collection(_RelationCollectionName).Find(ctx, bson.D{primitive.E{Key: "email_domain", Value: domain}, primitive.E{Key: "leak_id", Value: leakOID}})
 
 	if err != nil {
 		return nil, err

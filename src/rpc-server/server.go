@@ -73,8 +73,8 @@ func (s *LeakServiceServerHandler) ListLeaks(req *empty.Empty, srv LeakService_L
 			emailsArr = append(emailsArr, &Leak_Email{
 				Email:            email.Email,
 				Domain:           email.Domain,
-				FirstOccuranceTs: email.CreatedAt.Unix(),
-				LastOccuranceTs:  email.UpdatedAt.Unix(),
+				FirstOccuranceTs: email.CreatedAt,
+				LastOccuranceTs:  email.UpdatedAt,
 			})
 		}
 
@@ -170,8 +170,8 @@ func (s *LeakServiceServerHandler) GetLeaksByDomainStreamed(req *GetLeaksByDomai
 			emailsArr = append(emailsArr, &Leak_Email{
 				Email:            email.Email,
 				Domain:           email.Domain,
-				FirstOccuranceTs: email.CreatedAt.Unix(),
-				LastOccuranceTs:  email.UpdatedAt.Unix(),
+				FirstOccuranceTs: email.CreatedAt,
+				LastOccuranceTs:  email.UpdatedAt,
 			})
 		}
 
@@ -213,14 +213,12 @@ func (s *LeakServiceServerHandler) GetLeaksByEmail(ctx context.Context, req *Get
 	leaksRet := make([]*Leak, 0)
 
 	for _, leak := range leaks {
-		leakPkg := &Leak{
+		leaksRet = append(leaksRet, &Leak{
 			Id:         leak.ID.Hex(),
 			Name:       leak.Name,
 			Emails:     make([]*Leak_Email, 0),
 			EmailCount: 0,
-		}
-
-		leaksRet = append(leaksRet, leakPkg)
+		})
 	}
 
 	return &GetLeaksByEmailResponse{
@@ -252,11 +250,10 @@ func (s *LeakServiceServerHandler) GetLeaksByDomain(ctx context.Context, req *Ge
 		leakPkg := &Leak{
 			Id:         leak.ID.Hex(),
 			Name:       leak.Name,
-			Emails:     nil,
+			Emails:     make([]*Leak_Email, 0),
 			EmailCount: 0,
 		}
 
-		emailsArr := make([]*Leak_Email, 0)
 		var emailCount int64 = 0
 
 		emails, err := s.db.GetEmailsByDomainAndLeakID(req.GetDomain(), leakPkg.GetId())
@@ -268,15 +265,14 @@ func (s *LeakServiceServerHandler) GetLeaksByDomain(ctx context.Context, req *Ge
 		for _, email := range emails {
 			emailCount++
 
-			emailsArr = append(emailsArr, &Leak_Email{
+			leakPkg.Emails = append(leakPkg.Emails, &Leak_Email{
 				Email:            email.Email,
 				Domain:           email.Domain,
-				FirstOccuranceTs: email.CreatedAt.Unix(),
-				LastOccuranceTs:  email.UpdatedAt.Unix(),
+				FirstOccuranceTs: email.CreatedAt,
+				LastOccuranceTs:  email.UpdatedAt,
 			})
 		}
 
-		leakPkg.Emails = emailsArr
 		leakPkg.EmailCount = emailCount
 
 		leaksRet = append(leaksRet, leakPkg)
