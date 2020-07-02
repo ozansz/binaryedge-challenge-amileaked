@@ -17,19 +17,22 @@ service LeakService {
     };
   }
 
-  rpc GetLeaksByEmail(GetLeaksByEmailRequest) returns (stream ail.leak.Leak) {
+  rpc GetLeaksByEmail(GetLeaksByEmailRequest) returns (GetLeaksByEmailResponse) {
     option (google.api.http) = {
       post: "/v1-beta/leaks-by-email"
       body: "*"
     };
   }
-
-  rpc GetLeaksByDomain(GetLeaksByDomainRequest) returns (stream ail.leak.Leak) {
+  
+  rpc GetLeaksByDomain(GetLeaksByDomainRequest) returns (GetLeaksByDomainResponse) {
     option (google.api.http) = {
       post: "/v1-beta/leaks-by-domain"
       body: "*"
     };
   }
+  
+  rpc GetLeaksByEmailStreamed(GetLeaksByEmailRequest) returns (stream ail.leak.Leak) {}
+  rpc GetLeaksByDomainStreamed(GetLeaksByDomainRequest) returns (stream ail.leak.Leak) {}
 }
 
 message GetLeaksByEmailRequest {
@@ -38,4 +41,12 @@ message GetLeaksByEmailRequest {
 
 message GetLeaksByDomainRequest {
     string domain = 1;
+}
+
+message GetLeaksByEmailResponse {
+  repeated ail.leak.Leak leaks = 1;
+}
+
+message GetLeaksByDomainResponse {
+  repeated ail.leak.Leak leaks = 1;
 }
