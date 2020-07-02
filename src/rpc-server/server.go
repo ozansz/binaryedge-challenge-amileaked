@@ -9,13 +9,16 @@ import (
 	status "google.golang.org/grpc/status"
 )
 
+// LeakServiceServerHandler implements proper data structure for service server
 type LeakServiceServerHandler struct {
-	DBConnURI    string
-	DatabaseName string
-	db           *MongoDBConn
+	DBConnURI    string       // Database server connection URI
+	DatabaseName string       // Database name to connect
+	db           *MongoDBConn // MongoDB client connector ptr
 }
 
+// DBConnect - Makes connection to database cluster
 func (s *LeakServiceServerHandler) DBConnect() error {
+	// Perform nil pointer check
 	if s == nil {
 		return errors.New("Uninitialized server stub")
 	}
@@ -29,11 +32,14 @@ func (s *LeakServiceServerHandler) DBConnect() error {
 	return nil
 }
 
+// ListLeaks - Lists all Leak objects with their related Emails
 func (s *LeakServiceServerHandler) ListLeaks(req *empty.Empty, srv LeakService_ListLeaksServer) error {
+	// Perform nil pointer check
 	if s == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized server stub")
 	}
 
+	// Perform nil pointer check
 	if s.db == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized database connection")
 	}
@@ -83,11 +89,14 @@ func (s *LeakServiceServerHandler) ListLeaks(req *empty.Empty, srv LeakService_L
 	return nil
 }
 
+// GetLeaksByEmailStreamed - Open a one direction stream and send Leak objects related to the Email specified
 func (s *LeakServiceServerHandler) GetLeaksByEmailStreamed(req *GetLeaksByEmailRequest, srv LeakService_GetLeaksByEmailStreamedServer) error {
+	// Perform nil pointer check
 	if s == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized server stub")
 	}
 
+	// Perform nil pointer check
 	if s.db == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized database connection")
 	}
@@ -120,11 +129,14 @@ func (s *LeakServiceServerHandler) GetLeaksByEmailStreamed(req *GetLeaksByEmailR
 	return nil
 }
 
+// GetLeaksByDomainStreamed - Open a one direction stream and send Leak objects related to the email domain specified
 func (s *LeakServiceServerHandler) GetLeaksByDomainStreamed(req *GetLeaksByDomainRequest, srv LeakService_GetLeaksByDomainStreamedServer) error {
+	// Perform nil pointer check
 	if s == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized server stub")
 	}
 
+	// Perform nil pointer check
 	if s.db == nil {
 		return status.Errorf(codes.Aborted, "Uninitialized database connection")
 	}
@@ -174,11 +186,14 @@ func (s *LeakServiceServerHandler) GetLeaksByDomainStreamed(req *GetLeaksByDomai
 	return nil
 }
 
+// GetLeaksByEmail - Return an array of Leak objects related to the Email specified
 func (s *LeakServiceServerHandler) GetLeaksByEmail(ctx context.Context, req *GetLeaksByEmailRequest) (*GetLeaksByEmailResponse, error) {
+	// Perform nil pointer check
 	if s == nil {
 		return nil, status.Errorf(codes.Aborted, "Uninitialized server stub")
 	}
 
+	// Perform nil pointer check
 	if s.db == nil {
 		return nil, status.Errorf(codes.Aborted, "Uninitialized database connection")
 	}
@@ -213,11 +228,14 @@ func (s *LeakServiceServerHandler) GetLeaksByEmail(ctx context.Context, req *Get
 	}, nil
 }
 
+// GetLeaksByDomain - Return an array of Leak objects related to the email domain specified
 func (s *LeakServiceServerHandler) GetLeaksByDomain(ctx context.Context, req *GetLeaksByDomainRequest) (*GetLeaksByDomainResponse, error) {
+	// Perform nil pointer check
 	if s == nil {
 		return nil, status.Errorf(codes.Aborted, "Uninitialized server stub")
 	}
 
+	// Perform nil pointer check
 	if s.db == nil {
 		return nil, status.Errorf(codes.Aborted, "Uninitialized database connection")
 	}
