@@ -28,6 +28,12 @@ go install \
     github.com/golang/protobuf/protoc-gen-go
 ```
 
+### Customizations
+
+The database connection URI and database name are both hardcoded into the rpc server code (I know I shoud use **environment variables** or **flags** for this but I didn't :/ )
+
+So before compiling the `src/rpc-server` codes, you first need to go to `src/rpc-server/main.go` and change the values on fields `DBConnURI` and `DatabaseName` of the struct `LeakServiceServerHandler` on the lines `39` and `40`.
+
 ### Compiling The Source
 
 Let's start with compiling the `.proto` files and generating the corresponding server/client codes.
