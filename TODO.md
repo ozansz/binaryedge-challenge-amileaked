@@ -6,6 +6,6 @@
 * ~~add **grpc-gateway** for REST servicing~~
 * add load balancing and decide where to place load balancers
 * ~~add performance tracking~~
-* document api design in `docs/APIDesign.md`
+* ~~document api design in `docs/APIDesign.md`~~
 * document database design in `docs/DatabaseDesign.md`
 * ~~write general project information in `README.md`~~
